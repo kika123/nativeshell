@@ -1,0 +1,27 @@
+TARGETNAME=native
+TARGETTYPE=PROGRAM
+
+SOURCES=display.c  \
+        file.c     \
+        hardware.c \
+        input.c    \
+        main.c     \
+        sysinfo.c  \
+    keytrans.c \
+    shell.c    \
+    process.c  \
+    ntfile.c   \
+    ntreg.c	  \
+	system.c  \
+	cabd.c    \
+	lzxd.c    \
+	mszipd.c  \
+	qtmd.c
+UMTYPE=nt
+
+INCLUDES=\
+	inc ;\
+	$(DDK_INC_PATH);   \
+	$(SDK_INC_PATH)
+
+#PRECOMPILED_INCLUDE=precomp.h
