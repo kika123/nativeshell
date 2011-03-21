@@ -36,7 +36,7 @@ HANDLE hHeap;
 HANDLE hKey;
 
 #define __NCLI_VER__ "0.12 x86"
-BOOLEAN CabinetExpand(char * cabname, char * newname);
+void CabinetExpand(WCHAR* source, char* files,unsigned int flag , char* target);
 void CabinetTest();
 WCHAR *helpstr[] =
 {
@@ -78,11 +78,13 @@ RtlClipProcessMessage(PCHAR Command)
     WCHAR CurrentDirectory[MAX_PATH];
     WCHAR buf1[MAX_PATH];
     WCHAR buf2[MAX_PATH];
-    char buff1[MAX_PATH];
-    char buff2[MAX_PATH];
+    //char buff1[MAX_PATH];
+    //char buff2[MAX_PATH];
+    char *p, *p1, *p2;
+    unsigned int flag;
     UNICODE_STRING CurrentDirectoryString;
     CHAR CommandBuf[BUFFER_SIZE];
-
+    //unsigned int k;
     //
     // Copy command line and break it to arguments
     //
@@ -92,7 +94,13 @@ RtlClipProcessMessage(PCHAR Command)
     memset(CommandBuf, 0x00, BUFFER_SIZE);
     strncpy(CommandBuf, Command, strnlen(Command, BUFFER_SIZE));
     StringToArguments(CommandBuf);
-
+    xargc--;//xargc is big than the length of xargv
+    //RtlCliDisplayString("Command: %s\n", Command);
+    //RtlCliDisplayString("Args: %d\n", xargc);
+    //for(k=1;k<=xargc;k++)
+    //{
+        //RtlCliDisplayString("Arg %d:->%s<-\n", k, xargv[k]);
+    //}
     //
     // We'll call the handler for each command
     //
@@ -145,7 +153,7 @@ RtlClipProcessMessage(PCHAR Command)
         //
         // Set the current directory
         //
-        RtlCliSetCurrentDirectory(&Command[3]);
+        RtlCliSetCurrentDirectory(xargv[2]);
     }
     else if (!_strnicmp(Command, "locale", 6))
     {
@@ -329,19 +337,54 @@ RtlClipProcessMessage(PCHAR Command)
     }
     else if (!_strnicmp(Command, "expand", 6))
     {
-        // Make directory
-        if (xargc > 2)
-        {
-            GetFullPath(xargv[2], buf1, FALSE);
-            GetFullPath(xargv[3], buf2, FALSE);
-            wcstombs(buff1, buf1, MAX_PATH);
-            wcstombs(buff2, buf2, MAX_PATH);
-            RtlCliDisplayString("\nexpand %S\n", buf1);
-
-            if (!CabinetExpand(buff1, buff2))
+            __asm
             {
-                RtlCliDisplayString("Failed.\n");
+                int 3;
             }
+        // Expand .cab file
+        if (xargc > 2 && xargc <5)
+        {
+            //GetFullPath(xargv[2], buf1, FALSE);
+            //GetFullPath(xargv[3], buf2, FALSE);
+            //wcstombs(buff1, buf1, MAX_PATH);
+            //wcstombs(buff2, buf2, MAX_PATH);
+            //RtlCliDisplayString("\nexpand %S\n", buf1);
+
+            //if (!CabinetExpand(buff1, buff2))
+            //{
+            //    RtlCliDisplayString("Failed.\n");
+            //}
+            flag = 1;
+            p = NULL;
+            p2 = NULL;
+            wcscpy(buf1, L"");
+            //wcscpy(buf2, L"");
+            if(!_strnicmp(xargv[2],"-d",2)){
+                flag = 0;
+                GetFullPath(xargv[3], buf1, FALSE);
+                if(xargc==4 && !_strnicmp(xargv[4],"-f:",3)){
+                    p = xargv[4] + 3;
+                }
+            }else if(!_strnicmp(xargv[2],"-r",2)){
+                GetFullPath(xargv[3], buf1, FALSE);
+                //GetFullPath((xargc==4)?xargv[4]:"", buf2, FALSE);
+                p2 = (xargc==4)?xargv[4]:NULL;
+            }else if(xargc==4 && !_strnicmp(xargv[3],"-f:",3)){
+                GetFullPath(xargv[2], buf1, FALSE);
+                //GetFullPath(xargv[4], buf2, FALSE);
+                p2 = xargv[4];
+                p = xargv[3] + 3;
+            }else if(xargc==3){
+                GetFullPath(xargv[2], buf1, FALSE);
+                //GetFullPath(xargv[3], buf2, FALSE);
+                p2 = xargv[3];
+            }else{
+                RtlCliDisplayString("Invalid arguments.\n");
+            }
+            CabinetExpand(buf1, p, flag, p2);
+        }
+        else if(xargc >5){
+            RtlCliDisplayString("Too more arguments.\n");
         }
         else
         {
@@ -453,7 +496,7 @@ unsigned int test_count = 0;
         /*RtlCliDisplayString("%s:%d FAILED %s\n",__FUNCTION__,__LINE__,#x); */ \
         DbgPrint("\n!!!%s:%d -> %s\n",__FUNCTION__,__LINE__,#x);     \
     } else{                                                                     \
-        DbgPrint("\n>>>%s:%d -> %s\n",__FUNCTION__,__LINE__,#x);     \
+        /*DbgPrint("\n>>>%s:%d -> %s\n",__FUNCTION__,__LINE__,#x);     */\
     }                                                                           \
 } while (0)
 
@@ -650,10 +693,10 @@ void cabd_open_test_05()
 
     for (i = 0; i < (sizeof(str_files) / sizeof(char *)); i++)
     {
-        DbgPrint("\n===%s\n",str_files[i]);
+        //DbgPrint("\n===%s\n",str_files[i]);
         cab = cabd->open(cabd, str_files[i]);
         TEST(cab == NULL);
-        DbgPrint("\n===%d\n",cabd->last_error(cabd));
+        //DbgPrint("\n===%d\n",cabd->last_error(cabd));
         TEST(cabd->last_error(cabd) == MSPACK_ERR_DATAFORMAT);
     }
 
@@ -832,46 +875,49 @@ void cabd_merge_test_02()
     cabd->close(cabd, cab[0]);
     mspack_destroy_cab_decompressor(cabd);
 }
-BOOLEAN CabinetExpand(char *cabname, char *newname)
+void CabinetExpand(WCHAR* source, char* files, unsigned int flag , char* target)
 {
     struct mscab_decompressor *cabd;
     struct mscabd_cabinet *cab;
     struct mscabd_file *file;
+    WCHAR Buf1[MAX_PATH];
+    char buf1[MAX_PATH];
+    char buf2[MAX_PATH];
+    char buf3[MAX_PATH];
+    int count_ok=0, count_err=0, count=0;
     int err;
     /* if self-test reveals an error */
     MSPACK_SYS_SELFTEST(err);
-    if (err) return 1;
-
-    /* create a cab decompressor using our custom mspack_system interface */
+    if (err) return ;
+    GetFullPath(target?target:"",Buf1,FALSE);
+    if (Buf1[wcslen(Buf1) - 1] != L'\\')
+    {
+      wcscat(Buf1, L"\\");
+    }
+    wcstombs(buf1, source, MAX_PATH);
+    wcstombs(buf2, Buf1, MAX_PATH);
     if ((cabd = mspack_create_cab_decompressor(NULL)))
     {
-
-        /* open a cab file direct from memory */
-        if ((cab = cabd->open(cabd, cabname)))
+        if ((cab = cabd->open(cabd, buf1)))
         {
-
-            /* for all files */
-            for (file = cab->files; file; file = file->next)
-            {
-                /* fill out our "filename" (memory pointer and length) */
-                //output.data = malloc(file->length);
-                //output.length = file->length;
-
-                /* let cabd extract this file to our memory buffer */
-                if (cabd->extract(cabd, file, newname))
+            if(flag){
+                /* for all files */
+                for (file = cab->files; file; file = file->next,count++)
                 {
-                    RtlCliDisplayString("Filename: %s\nextract error:\n", file->filename);
+                    strcpy(buf3,buf2);
+                    strcat(buf3,file->filename);
+                    if (cabd->extract(cabd, file, buf3) == MSPACK_ERR_OK)
+                    {
+                        count_ok++;
+                        RtlCliDisplayString("%s\n", file->filename);
+                    }
+                    else
+                    {
+                        count_err++;
+                        RtlCliDisplayString("%s expand error\n", file->filename);
+                    }
                 }
-                else
-                {
-
-                    /* dump the memory buffer to stdout (for display purposes) */
-                    RtlCliDisplayString("Filename: %s\nContents:\n", file->filename);
-                    //fwrite(output.data, 1, output.length, stdout);
-
-                    /* free our buffer */
-                    //free(output.data);
-                }
+                RtlCliDisplayString("%d files found, %d files expanded, %d files error.\n", count, count_ok, count_err);
             }
             cabd->close(cabd, cab);
         }
@@ -885,7 +931,7 @@ BOOLEAN CabinetExpand(char *cabname, char *newname)
     {
         RtlCliDisplayString("can't make decompressor\n");
     }
-    return TRUE;
+    return ;
 }
 int selftest;
 void CabinetTest()
@@ -934,7 +980,7 @@ main(INT argc,
     RtlCliDisplayString("(C) Copyright 2010-2011 amdf\n");
     RtlCliDisplayString("(C) Copyright 2006 TinyKRNL Project\n\n");
     RtlCliDisplayString("Type \"help\".\n\n");
-    DbgPrint("************START************\n");
+    DbgPrint("************Native Shell START************\n");
     // Setup keyboard input
     //
     Status = RtlCliOpenInputDevice(&hKeyboard, KeyboardType);

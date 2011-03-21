@@ -134,7 +134,7 @@ static struct mspack_file *msp_open(struct mspack_system *this,
     default:
         return NULL;
     }
-    mbstowcs(wchr , filename , strlen(filename)+1);
+    mbstowcs(wchr , filename , strlen(filename) + 1);
     status = NtFileOpenFile( &hFile , wchr, fmode, FALSE);
     if(!status)
     {
@@ -162,15 +162,33 @@ static void msp_close(struct mspack_file *file)
 static int msp_read(struct mspack_file *file, void *buffer, int bytes)
 {
     struct mspack_file_p *this = (struct mspack_file_p *) file;
-    DWORD count = 0;
+    /*DWORD count = 0;
     if (this && buffer && bytes >= 0)
     {
         if(NtFileReadFile(this->fh, buffer, bytes, &count))
         {
             return (int) count;
         }
+        return 0;
     }
-    return -1;
+    return -1;*/
+    IO_STATUS_BLOCK sIoStatus;
+    NTSTATUS ntStatus = 0;
+    memset(&sIoStatus, 0, sizeof(IO_STATUS_BLOCK));
+
+    ntStatus = NtReadFile( this->fh, NULL, NULL, NULL, &sIoStatus, buffer, bytes, NULL, NULL);
+    if (ntStatus == STATUS_SUCCESS)
+    {
+        return sIoStatus.Information;
+    }
+    else if(ntStatus == STATUS_END_OF_FILE)
+    {
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 static int msp_write(struct mspack_file *file, void *buffer, int bytes)
