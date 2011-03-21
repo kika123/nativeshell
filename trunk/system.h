@@ -24,9 +24,9 @@
 # undef read
 #endif
 
-//#ifdef DEBUG
+#ifdef DEBUG
 #include "precomp.h"
-//# include <stdio.h>
+# include <stdio.h>
 /* Old GCCs don't have __func__, but __FUNCTION__:
  * http://gcc.gnu.org/onlinedocs/gcc/Function-Names.html
  */
@@ -39,10 +39,10 @@
 # endif
 //# define D(x) do { printf("%s:%d (%s) ",__FILE__, __LINE__, __func__); \
 //                   printf x ; fputc('\n', stdout); fflush(stdout);} while (0);
-# define D(x)do { DbgPrint("\n!!!%s:%d (%s) \n",__FILE__, __LINE__, __func__); } while (0);
-//#else
-//# define D(x)
-//#endif
+# define D(x)do { DbgPrint("\n!!!%s:%d (%s) \n",__FILE__, __LINE__, __FUNCTION__); } while (0);
+#else
+# define D(x)
+#endif
 
 /* CAB supports searching through files over 4GB in size, and the CHM file
  * format actively uses 64-bit offsets. These can only be fully supported
