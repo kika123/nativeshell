@@ -162,16 +162,6 @@ static void msp_close(struct mspack_file *file)
 static int msp_read(struct mspack_file *file, void *buffer, int bytes)
 {
     struct mspack_file_p *this = (struct mspack_file_p *) file;
-    /*DWORD count = 0;
-    if (this && buffer && bytes >= 0)
-    {
-        if(NtFileReadFile(this->fh, buffer, bytes, &count))
-        {
-            return (int) count;
-        }
-        return 0;
-    }
-    return -1;*/
     IO_STATUS_BLOCK sIoStatus;
     NTSTATUS ntStatus = 0;
     memset(&sIoStatus, 0, sizeof(IO_STATUS_BLOCK));

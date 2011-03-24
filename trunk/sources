@@ -16,7 +16,7 @@ SOURCES=display.c  \
 	cabd.c    \
 	lzxd.c    \
 	mszipd.c  \
-	qtmd.c
+	qtmd.c	
 UMTYPE=nt
 
 INCLUDES=\
