@@ -182,6 +182,7 @@ unsigned int xargc;
 
 BOOL GetFullPath(IN PCSTR filename, OUT PWSTR out, IN BOOL add_slash);
 BOOL FileExists(PCWSTR fname);
+BOOL FolderExists(PCWSTR fname);
 
 // Registry
 
@@ -201,35 +202,35 @@ void FillUnicodeStringWithAnsi(OUT PUNICODE_STRING us, IN PCHAR as);
 //===========================================================
 
 BOOLEAN SetUnicodeString (
-  UNICODE_STRING* pustrRet, 
+  UNICODE_STRING* pustrRet,
   WCHAR* pwszData
   );
-BOOLEAN 
+BOOLEAN
   DisplayString (
   WCHAR* pwszData
   );
-HANDLE 
+HANDLE
   InitHeapMemory (void);
-BOOLEAN 
+BOOLEAN
   DeinitHeapMemory (
   HANDLE hHeap
   );
-PVOID 
+PVOID
   kmalloc (
-  HANDLE hHeap, 
-  int nSize 
+  HANDLE hHeap,
+  int nSize
   );
-BOOLEAN 
-  kfree ( 
-  HANDLE hHeap, 
-  PVOID pMemory 
+BOOLEAN
+  kfree (
+  HANDLE hHeap,
+  PVOID pMemory
   );
-BOOLEAN 
+BOOLEAN
   AppendString(
-  WCHAR* pszInput, 
+  WCHAR* pszInput,
   WCHAR* pszAppend
   );
-UINT 
+UINT
   GetStringLength(
   WCHAR* pszInput
   );
