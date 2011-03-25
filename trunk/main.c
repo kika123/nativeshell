@@ -35,8 +35,6 @@ HANDLE hHeap;
 HANDLE hKey;
 
 #define __NCLI_VER__ "0.12 x86"
-//void CabinetExpand(WCHAR* source, char* files,unsigned int flag , char* target);
-//void CabinetTest();
 WCHAR *helpstr[] =
 {
     {
@@ -52,6 +50,8 @@ WCHAR *helpstr[] =
         L"exit     - Exit shell               sysinfo  - Dump system information\n"
         L"lm       - List modules             vid      - Test screen output\n"
         L"lp       - List processes           move X Y - Move file X to Y\n"
+        L"if       - Condition                load X   - Load a batch file\n"
+        L"expand   - expand a .cab file\n"
         L"\n"
         L"If a command is not in the list, it is treated as an executable name\n"
         L"\n"
@@ -143,14 +143,14 @@ RtlClipProcessMessage(PCHAR Command)
         //
         RtlCliSetCurrentDirectory(xargv[2]);
     }
-    else if (!_stricmp(xargv[1], "locale"))
-    {
-        //
-        // Set the current directory
-        //
+    //else if (!_stricmp(xargv[1], "locale"))
+    //{
+    ////
+    //// Set the current directory
+    ////
 
-        NtSetDefaultLocale(TRUE, 1049);
-    }
+    //NtSetDefaultLocale(TRUE, 1049);
+    //}
     else if (!_stricmp(xargv[1], "pwd"))
     {
         //
@@ -342,7 +342,7 @@ RtlClipProcessMessage(PCHAR Command)
             else
             {
                 GetFullPath(xargv[3], buf2, FALSE);
-                wcscat(buf2,L"\\");
+                wcscat(buf2, L"\\");
             }
             CabinetExpand(buf1, buf2);
         }
@@ -353,8 +353,14 @@ RtlClipProcessMessage(PCHAR Command)
     }
     else if (!_stricmp(xargv[1], "if"))
     {
-        void IfCondition();
-        IfCondition();
+        void IfCondition( PCHAR Command);
+        IfCondition(Command);
+    }
+    else if (!_stricmp(xargv[1], "load"))
+    {
+        void LoadBatch(PCHAR Command, WCHAR * fname);
+        GetFullPath(xargv[2], buf1, FALSE);
+        LoadBatch(Command, buf1);
     }
     //else if (!_stricmp(xargv[1], "cabtest"))
     //{
@@ -394,7 +400,7 @@ RtlClipProcessMessage(PCHAR Command)
         }
         else
         {
-            RtlCliDisplayString("%s not recognized\n", Command);
+            RtlCliDisplayString("unkonwn command : %s\n", Command);
         }
     }
 }
@@ -476,19 +482,20 @@ main(INT argc,
     RtlCliDisplayString("(C) Copyright 2006 TinyKRNL Project\n\n");
     RtlCliDisplayString("Type \"help\".\n\n");
     DbgPrint("************Native Shell START************\n");
-    RtlCliDisplayString("argc=%d.argv[0]=%s\n\n",argc,argv[0]);
     // Setup keyboard input
     //
-    if(argc>1){
-        Command = RtlAllocateHeap(RtlGetProcessHeap(), 0, BUFFER_SIZE);
-        Command[0] = '\0';
-        for(i=1;i<argc;i++){
-            RtlCliDisplayString("argc=%d.argv[0]=%s\n",i,argv[i]);
-            strcat(Command,argv[i]);
-            strcat(Command," ");
+    if(argc > 1)
+    {
+        Command = RtlAllocateHeap(RtlGetProcessHeap(), HEAP_ZERO_MEMORY, BUFFER_SIZE);
+        for(i = 1; i < argc; i++)
+        {
+            strcat(Command, argv[i]);
+            strcat(Command, " ");
         }
         RtlClipProcessMessage(Command);
         RtlFreeHeap(RtlGetProcessHeap(), 0, Command);
+        //DeinitHeapMemory( hHeap );
+        //NtTerminateProcess(NtCurrentProcess(), 0);
     }
     Status = RtlCliOpenInputDevice(&hKeyboard, KeyboardType);
 
@@ -534,11 +541,83 @@ main(INT argc,
     //
     return STATUS_SUCCESS;
 }
-void IfCondition()
+void IfCondition(PCHAR Command)
 {
-
-
-
+    unsigned int i = 2;
+    WCHAR buf[MAX_PATH];
+    if(!_stricmp(xargv[2], "not"))
+    {
+        i++;
+    }
+    if(!_stricmp(xargv[i], "exist"))
+    {
+        GetFullPath(xargv[++i], buf, FALSE);
+        if(!_stricmp(xargv[2], "not") ^ (FileExists(buf) || FolderExists(buf)))
+        {
+            strcpy(Command, xargv[++i]);
+            for(i++; i <= xargc; i++)
+            {
+                strcat(Command, " ");
+                strcat(Command, xargv[i]);
+            }
+            RtlClipProcessMessage(Command);
+        }
+    }
+}
+void LoadBatch(PCHAR Command, WCHAR *fname)
+{
+    HANDLE hFile;
+    IO_STATUS_BLOCK sIoStatus;
+    NTSTATUS ntStatus;
+    char *buf;
+    off_t offset = 0;
+    DWORD i, pos = 0;
+    if(!NtFileOpenFile( &hFile , fname, FALSE, FALSE))
+    {
+        RtlCliDisplayString("file open error.\n");
+        return;
+    }
+    buf = RtlAllocateHeap(RtlGetProcessHeap(), HEAP_ZERO_MEMORY, MAX_PATH);
+    while(pos < BUFFER_SIZE)
+    {
+        ntStatus = 0;
+        memset(&sIoStatus, 0, sizeof(IO_STATUS_BLOCK));
+        NtFileSeekFile(hFile, offset);
+        ntStatus = NtReadFile( hFile, NULL, NULL, NULL, &sIoStatus, buf, MAX_PATH, NULL, NULL);
+        for(i = 0; i < sIoStatus.Information || ntStatus == STATUS_END_OF_FILE; i++)
+        {
+            if(pos >= BUFFER_SIZE - 1)
+            {
+                RtlCliDisplayString("Command buffer overflow.\n");
+                break;
+            }
+            offset++;
+            if(buf[i] == '\r' || buf[i] == '\n' || ntStatus == STATUS_END_OF_FILE)
+            {
+                if(pos)
+                {
+                    Command[pos] = '\0';
+                    pos = 0;
+                    RtlClipDisplayPrompt();
+                    RtlCliDisplayString("%s\n", Command);
+                    RtlClipProcessMessage(Command);
+                }
+                break;
+            }
+            Command[pos++] = buf[i];
+        }
+        if (ntStatus == STATUS_END_OF_FILE)
+        {
+            break;
+        }
+        else if (ntStatus != STATUS_SUCCESS)
+        {
+            RtlCliDisplayString("file read error.\n");
+            break;
+        }
+    }
+    RtlFreeHeap(RtlGetProcessHeap(), 0, buf);
+    NtClose(hFile);
 }
 void CabinetExpand(WCHAR *cabname, WCHAR *target)
 {
@@ -551,14 +630,10 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
     char fName[MAX_PATH];
     int count_ok = 0, count_err = 0, count = 0;
     int err;
-    //__asm
-    //{
-        //int 3;
-    //}
     MSPACK_SYS_SELFTEST(err);
     if (err)
     {
-        RtlCliDisplayString("MSPACK_SYS_SELFTEST : %d.\n", err);
+        RtlCliDisplayString("selftest error : %d.\n", err);
         return ;
     }
     if (!(cabd = mspack_create_cab_decompressor(NULL)))
@@ -567,10 +642,9 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
         return ;
     }
     wcstombs(cName, cabname, MAX_PATH);
-    RtlCliDisplayString("cabinet file : %s .\n", cName);
     if(!(cab = cabd->open(cabd, cName)))
     {
-        RtlCliDisplayString("can't open cabinet file. error : %d.\n", cabd->last_error(cabd));
+        RtlCliDisplayString("can't open file. error : %d.\n", cabd->last_error(cabd));
     }
     else
     {
@@ -580,18 +654,16 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
             {
                 RtlCliDisplayString(">%s\n", file->filename);
             }
-            RtlCliDisplayString("%d files in this cabinet file.\n", count);
+            RtlCliDisplayString("total %d files.\n", count);
         }
         else
         {
             wcstombs(tPath, target, MAX_PATH);
-            //RtlCliDisplayString("target path : %s .\n", tPath);
             for (file = cab->files; file; file = file->next, count++)
             {
                 strcpy(fName, tPath);
                 strcat(fName, file->filename);
-                RtlCliDisplayString(">%s ", file->filename);
-                //RtlCliDisplayString("target name : %s .\n", fName);
+                RtlCliDisplayString(">%s", file->filename);
                 if (cabd->extract(cabd, file, fName) == MSPACK_ERR_OK)
                 {
                     count_ok++;
@@ -603,7 +675,7 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
                     RtlCliDisplayString("...error : %d\n", cabd->last_error(cabd));
                 }
             }
-            RtlCliDisplayString("%d files in this cabinet file, %d files expanded, %d files error.\n", count, count_ok, count_err);
+            RtlCliDisplayString("total %d files, %d files ok, %d files error.\n", count, count_ok, count_err);
 
         }
         cabd->close(cabd, cab);
