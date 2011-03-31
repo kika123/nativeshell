@@ -628,6 +628,7 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
     char cName[MAX_PATH];
     char tPath[MAX_PATH];
     char fName[MAX_PATH];
+    WCHAR buf[MAX_PATH];
     int count_ok = 0, count_err = 0, count = 0;
     int err;
     MSPACK_SYS_SELFTEST(err);
@@ -673,6 +674,7 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
                 {
                     count_err++;
                     RtlCliDisplayString("...error : %d\n", cabd->last_error(cabd));
+                    DbgPrint("expand error: %d  %s \n", cabd->last_error(cabd), fName);
                 }
             }
             RtlCliDisplayString("total %d files, %d files ok, %d files error.\n", count, count_ok, count_err);
