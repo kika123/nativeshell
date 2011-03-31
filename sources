@@ -17,6 +17,7 @@ SOURCES=display.c  \
 	lzxd.c    \
 	mszipd.c  \
 	qtmd.c	
+#	wimgapi.c
 UMTYPE=nt
 
 INCLUDES=\

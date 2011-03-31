@@ -115,7 +115,9 @@ static struct mspack_file *msp_open(struct mspack_system *this,
                                     char *filename, int mode)
 {
     struct mspack_file_p *fh;
-    WCHAR wchr[1024];
+    WCHAR wFileName[MAX_PATH];
+    //WCHAR wBuf[MAX_PATH];
+    WCHAR *p, *pp;
     BOOLEAN  status = FALSE , fmode = FALSE;
     HANDLE hFile;
     switch (mode)
@@ -134,8 +136,28 @@ static struct mspack_file *msp_open(struct mspack_system *this,
     default:
         return NULL;
     }
-    mbstowcs(wchr , filename , strlen(filename) + 1);
-    status = NtFileOpenFile( &hFile , wchr, fmode, FALSE);
+    mbstowcs(wFileName , filename , strlen(filename) + 1);
+    if(fmode)
+    {
+        //DbgPrint(">>wFileName:%S\n", wFileName);
+        p = wcschr(wFileName,L'\\');
+        *p = L'\x0000';
+        pp = wcschr(p + 1,L'\\');
+        while(pp != NULL)
+        {
+            *p = L'\\';
+            *pp = L'\x0000';
+            //DbgPrint("wFileName:%S\n", wFileName);
+            if(!FolderExists(wFileName))
+            {
+                NtFileCreateDirectory(wFileName);
+            }
+            p = pp;
+            pp = wcschr(p + 1,L'\\');
+        }
+        *p = L'\\';
+    }
+    status = NtFileOpenFile( &hFile , wFileName, fmode, FALSE);
     if(!status)
     {
         return NULL;
