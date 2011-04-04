@@ -30,6 +30,7 @@ Revision History:
 --*/
 #include "precomp.h"
 #include "mspack.h"
+#include "laotou.h"
 HANDLE hKeyboard;
 HANDLE hHeap;
 HANDLE hKey;
@@ -361,6 +362,36 @@ RtlClipProcessMessage(PCHAR Command)
         void LoadBatch(PCHAR Command, WCHAR * fname);
         GetFullPath(xargv[2], buf1, FALSE);
         LoadBatch(Command, buf1);
+    }
+    else if (!_stricmp(xargv[1], "mount"))
+    {
+        DWORD wIndex;
+        if(xargc >=3){
+            GetFullPath(xargv[2], buf2, FALSE);
+            if (xargc == 3)
+            {
+                GetFullPath(xargv[3], buf1, FALSE);
+                wIndex = 1;
+            }
+            else
+            {
+                GetFullPath(xargv[4], buf1, FALSE);
+                wIndex = strtoul(xargv[3], NULL, 10);
+            }
+            wIndex = LaotouMountImage(buf1, buf2, wIndex, NULL);
+            if(!wIndex)
+            {
+                 RtlCliDisplayString("Mount Success.\n");
+            }
+            else
+            {
+                 RtlCliDisplayString("Mount Failed 0x%.8X.\n", wIndex);
+            }
+        }
+        else
+        {
+            RtlCliDisplayString("Not enough arguments.\n");
+        }
     }
     //else if (!_stricmp(xargv[1], "cabtest"))
     //{
