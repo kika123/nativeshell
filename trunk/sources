@@ -1,5 +1,11 @@
 TARGETNAME=native
 TARGETTYPE=PROGRAM
+TARGETLIBS=$(TARGETLIBS) lib\laotouwim.lib
+!if $(FREEBUILD)
+MSC_WARNING_LEVEL=/W1
+!else
+MSC_WARNING_LEVEL=/W3
+!endif
 
 SOURCES=display.c  \
         file.c     \
@@ -16,13 +22,13 @@ SOURCES=display.c  \
 	cabd.c    \
 	lzxd.c    \
 	mszipd.c  \
-	qtmd.c	
+	qtmd.c
 #	wimgapi.c
 UMTYPE=nt
 
 INCLUDES=\
-	inc ;\
-	$(DDK_INC_PATH);   \
+	inc;\
+	$(DDK_INC_PATH);\
 	$(SDK_INC_PATH)
 
 #PRECOMPILED_INCLUDE=precomp.h
