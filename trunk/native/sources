@@ -1,6 +1,8 @@
 TARGETNAME=native
 TARGETTYPE=PROGRAM
-TARGETLIBS=$(TARGETLIBS) lib\laotouwim.lib
+RELEASETYPE=CUSTOM
+TARGETPATH=..\build\$(BUILD_ALT_DIR)
+TARGETLIBS=$(TARGETLIBS) ..\lib\i386\mspack.lib ..\lib\laotouwim.lib
 !if $(FREEBUILD)
 MSC_WARNING_LEVEL=/W1
 !else
@@ -17,18 +19,11 @@ SOURCES=display.c  \
     shell.c    \
     process.c  \
     ntfile.c   \
-    ntreg.c	  \
-	system.c  \
-	cabd.c    \
-	lzxd.c    \
-	mszipd.c  \
-	qtmd.c
-#	wimgapi.c
+    ntreg.c
 UMTYPE=nt
 
-INCLUDES=\
-	inc;\
+INCLUDES=..\inc;\
+	..\inc\ndk;\
 	$(DDK_INC_PATH);\
 	$(SDK_INC_PATH)
-
-#PRECOMPILED_INCLUDE=precomp.h
+PRECOMPILED_INCLUDE=precomp.h

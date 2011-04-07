@@ -1,0 +1,21 @@
+TARGETNAME=mspack
+TARGETTYPE=LIBRARY 
+RELEASETYPE=CUSTOM
+TARGETPATH=..\lib
+!if $(FREEBUILD)
+MSC_WARNING_LEVEL=/W1
+!else
+MSC_WARNING_LEVEL=/W3
+!endif
+
+SOURCES=system.c  \
+	cabd.c    \
+	lzxd.c    \
+	mszipd.c  \
+	qtmd.c
+UMTYPE=nt
+
+INCLUDES=..\inc;\
+	..\inc\ndk;\
+	$(DDK_INC_PATH);\
+	$(SDK_INC_PATH)
