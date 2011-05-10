@@ -23,7 +23,7 @@
 
 #include <system.h>
 #include <cab.h>
-//#include <assert.h>
+#include <assert.h>
 
 /* Notes on compliance with cabinet specification:
  *
@@ -54,7 +54,7 @@
  * means each consecutive data block can have completely different
  * "uncompressed" sizes, ranging from 1 to 32768 bytes. However, in
  * reality, all data blocks in a folder decompress to exactly 32768 bytes,
- * excepting the final block.
+ * excepting the final block. 
  *
  * Given this situation, the decompression algorithms are designed to
  * realign their input bitstreams on 32768 output-byte boundaries, and
@@ -381,7 +381,7 @@ static int cabd_read_headers(struct mspack_system *sys,
   }
   else {
     cab->base.header_resv = 0;
-    folder_resv           = 0;
+    folder_resv           = 0; 
     cab->block_resv       = 0;
   }
 
@@ -447,7 +447,7 @@ static int cabd_read_headers(struct mspack_system *sys,
     if (x < cffileCONTINUED_FROM_PREV) {
       /* normal folder index; count up to the correct folder. the folder
        * pointer will be NULL if folder index is invalid */
-      struct mscabd_folder *ifol = cab->base.folders;
+      struct mscabd_folder *ifol = cab->base.folders; 
       while (x--) if (ifol) ifol = ifol->next;
       file->folder = ifol;
 
@@ -499,7 +499,7 @@ static int cabd_read_headers(struct mspack_system *sys,
 
     /* get filename */
     file->filename = cabd_read_string(sys, fh, cab, &x);
-    if (x) {
+    if (x) { 
       sys->free(file);
       return x;
     }
@@ -548,7 +548,7 @@ static char *cabd_read_string(struct mspack_system *sys,
   *error = MSPACK_ERR_OK;
   return str;
 }
-
+    
 /***************************************
  * CABD_SEARCH, CABD_FIND
  ***************************************
@@ -601,7 +601,7 @@ static struct mscabd_cabinet *cabd_search(struct mscab_decompressor *base,
 		     firstlen - filelen);
       }
     }
-
+    
     sys->close(fh);
   }
   else {
@@ -730,7 +730,7 @@ static int cabd_find(struct mscab_decompressor_p *this, unsigned char *buf,
 
 	    /* cause the search to restart after this cab's data. */
 	    offset = caboff + cablen;
-
+	      
 	    /* link the cab into the list */
 	    if (!link) *firstcab = cab;
 	    else link->base.next = (struct mscabd_cabinet *) cab;
@@ -761,7 +761,7 @@ static int cabd_find(struct mscab_decompressor_p *this, unsigned char *buf,
 
   return MSPACK_ERR_OK;
 }
-
+					     
 /***************************************
  * CABD_MERGE, CABD_PREPEND, CABD_APPEND
  ***************************************
@@ -1074,7 +1074,7 @@ static int cabd_init_decomp(struct mscab_decompressor_p *this, unsigned int ct)
 {
   struct mspack_file *fh = (struct mspack_file *) this;
 
-  //assert(this && this->d);
+  assert(this && this->d);
 
   /* free any existing decompressor */
   cabd_free_decomp(this);

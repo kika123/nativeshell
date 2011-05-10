@@ -9,7 +9,7 @@
 
 #ifndef MSPACK_SYSTEM_H
 #define MSPACK_SYSTEM_H 1
-#pragma warning ( disable : 4242 )
+
 /* ensure config.h is read before mspack.h */
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -25,7 +25,6 @@
 #endif
 
 #ifdef DEBUG
-#include "precomp.h"
 # include <stdio.h>
 /* Old GCCs don't have __func__, but __FUNCTION__:
  * http://gcc.gnu.org/onlinedocs/gcc/Function-Names.html
@@ -37,9 +36,8 @@
 #   define __func__ "<unknown>"
 #  endif
 # endif
-//# define D(x) do { printf("%s:%d (%s) ",__FILE__, __LINE__, __func__); \
-//                   printf x ; fputc('\n', stdout); fflush(stdout);} while (0);
-# define D(x)do { DbgPrint("\n!!!%s:%d (%s) \n",__FILE__, __LINE__, __FUNCTION__); } while (0);
+# define D(x) do { printf("%s:%d (%s) ",__FILE__, __LINE__, __func__); \
+                   printf x ; fputc('\n', stdout); fflush(stdout);} while (0);
 #else
 # define D(x)
 #endif
@@ -62,7 +60,7 @@
 # define LD "lld"
 # define LU "llu"
 #else
-extern char *largefile_msg;
+extern const char *largefile_msg;
 # define LD "ld"
 # define LU "lu"
 #endif
@@ -105,7 +103,7 @@ extern int mspack_valid_system(struct mspack_system *sys);
 # define mspack_memcmp memcmp
 #else
 /* inline memcmp() */
-static __inline int mspack_memcmp(const void *s1, const void *s2, size_t n) {
+static inline int mspack_memcmp(const void *s1, const void *s2, size_t n) {
   unsigned char *c1 = (unsigned char *) s1;
   unsigned char *c2 = (unsigned char *) s2;
   if (n == 0) return 0;
