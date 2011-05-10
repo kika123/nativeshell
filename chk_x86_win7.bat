@@ -1,1 +1,0 @@
-call b.bat chk x86 win7
