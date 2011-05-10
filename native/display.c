@@ -31,8 +31,8 @@ Revision History:
 
 WCHAR DisplayBuffer[1024];
 USHORT LinePos = 0;
-WCHAR PutChar[2] = L" ";
-UNICODE_STRING CharString = {2, 2, PutChar};
+WCHAR _PutChar[2] = L" ";
+UNICODE_STRING CharString = {2, 2, _PutChar};
 BOOLEAN ECHO_STATUS = TRUE;
 BOOLEAN ERROR_STATUS = TRUE;
 /*++
@@ -233,15 +233,6 @@ RtlCliDisplayString(IN PCH Message, ...)
 }
 
 /*********************************************************************************************************************/
-WCHAR ScreenBuffer[1024] ;
-VOID DisplayString(LPCWSTR lpwString)
-{
-   UNICODE_STRING us;
-   if(ECHO_STATUS){
-       RtlInitUnicodeString (&us, lpwString);
-       NtDisplayString (&us);
-   }
-}
 
 VOID Printf (char* fmt, ...)
 {
@@ -280,11 +271,11 @@ VOID Print (char* buffer)
 
 VOID PutChar(WCHAR pChar)
 {
-    WCHAR PutChar[2] = L" ";
-    UNICODE_STRING CharString = {2, 2, PutChar};
+    WCHAR _PutChar[2] = L" ";
+    UNICODE_STRING CharString = {2, 2, _PutChar};
     if(ECHO_STATUS){
         CharString.Buffer[0] = pChar;
-        return NtDisplayString(&CharString);
+        NtDisplayString(&CharString);
     }
 }
 
@@ -320,6 +311,20 @@ VOID ErrorPrint (char* buffer)
        NtDisplayString(&UnicodeString);
        RtlFreeUnicodeString (&UnicodeString);
    }
+}
+
+VOID ScreenBufferCat(WCHAR* pBuffer)
+{
+    int len1 = wcslen(ScreenBuffer);
+    int len2 = wcslen(pBuffer);
+    if(len1 + len2 > 80)
+    {
+        wcscpy(ScreenBuffer, (WCHAR*)&pBuffer[len2 - (len1 + len2) % 80]);
+    }
+    else
+    {
+        wcscat(ScreenBuffer, pBuffer);
+    }
 }
 
 VOID BufferPrintf (char* fmt, ...)
@@ -376,22 +381,19 @@ VOID BufferPutChar(WCHAR pChar)
         else
         {
             CharString.Buffer[0] = pChar;
-            ScreenBufferCat(UnicodeString.Buffer);
+            ScreenBufferCat(CharString.Buffer);
             NtDisplayString(&CharString);
         }
     }
 }
 
-VOID ScreenBufferCat(WCHAR* pBuffer)
+int
+__cdecl
+vfprintf(FILE *stream, const char *format, va_list argptr)
 {
-    int len1 = wcslen(ScreenBuffer);
-    int len2 = wcslen(pBuffer);
-    if(len1 + len2 > 80)
-    {
-        wcscpy(ScreenBuffer, (WCHAR*)&pBuffer[len2 - (len1 + len2) % 80]);
-    }
-    else
-    {
-        wcscat(ScreenBuffer, pBuffer);
-    }
+    Printf((char *)format, argptr);
+
+    return 1;
 }
+
+

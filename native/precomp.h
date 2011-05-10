@@ -232,3 +232,15 @@ UINT
   GetStringLength(
   WCHAR* pszInput
   );
+/******************************************************************************/
+WCHAR ScreenBuffer[1024] ;
+VOID Printf (char* fmt, ...);
+VOID Print (char* buffer);
+VOID PutChar(WCHAR pChar);
+
+VOID ErrorPrintf (char* fmt, ...);
+VOID ErrorPrint (char* buffer);
+VOID ScreenBufferCat(WCHAR* pBuffer);
+VOID BufferPrintf (char* fmt, ...);
+VOID BufferPrint (char* buffer);
+VOID BufferPutChar(WCHAR pChar);
