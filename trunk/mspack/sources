@@ -7,8 +7,6 @@ TARGETPATH=$(ROOTDIR)\lib
 C_DEFINES=$(C_DEFINES) -DHAVE_CONFIG_H
 
 
-
-
 SOURCES=system.c  \
 	cabd.c    \
 	lzxd.c    \
