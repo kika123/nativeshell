@@ -9,6 +9,7 @@
 
 #ifndef MSPACK_READHUFF_H
 #define MSPACK_READHUFF_H 1
+
 /* This implements a fast Huffman tree decoding system.
  */
 
