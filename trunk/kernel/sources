@@ -1,0 +1,38 @@
+TARGETNAME=kernel
+TARGETTYPE=LIBRARY
+RELEASETYPE=CUSTOM
+TARGETPATH=$(ROOTDIR)\lib
+
+C_DEFINES=$(C_DEFINES) -D_KERNEL32_ -D_INLINE_NT_CURRENTTEB_H_ -D__REACTOS__
+
+!INCLUDE $(ROOTDIR)\sources.inc
+
+#i386_SOURCES=i386\fiber.S.asm \
+#	i386\thread.S.asm
+
+SOURCES=\
+    copy.c\
+    create.c\
+    curdir.c\
+    delete.c\
+    deviceio.c\
+    dir.c\
+    env.c\
+    error.c\
+    file.c\
+    find.c\
+    handle.c\
+    ldr.c\
+    lstring.c\
+    move.c\
+    nls.c\
+    rw.c\
+    section.c\
+    stubs.c\
+    tls.c\
+    utils.c\
+    volume.c\
+    wait.c\
+
+
+
