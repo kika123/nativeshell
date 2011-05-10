@@ -35,8 +35,6 @@ Revision History:
 #include "ntfile.h"
 #include "ntreg.h"
 
-
-
 //
 // Device type for input/output
 //

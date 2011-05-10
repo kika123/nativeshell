@@ -9,7 +9,7 @@
 
 #ifndef MSPACK_SYSTEM_H
 #define MSPACK_SYSTEM_H 1
-
+#pragma warning ( disable : 4242 )
 /* ensure config.h is read before mspack.h */
 #ifdef HAVE_CONFIG_H
 # include <config.h>
