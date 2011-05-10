@@ -6,15 +6,15 @@ Native Development Kit README
 
 0.1 COPYRIGHT
 
-The NDK is Copyright ©2005-2008 Alex Ionescu.
+The NDK is Copyright © 2005 Alex Ionescu.
 
 0.2 CONTACT INFORMATION
 
 The author, Alex Ionescu, may be reached through the following means:
 
-Email: 	aionescu@gmail.com
-Mail:	1411 du Fort, #1207. H3H 2N7. Montreal, QC. CANADA.	
-Phone: 	1-(514)-581-7156
+Email: 	alexi@tinykrnl.org
+Mail:	2246, Duvernay. H3J 2Y3. Montreal, QC. CANADA.	
+Phone: 	(514)581-7156
 
 1. LICENSE
 
@@ -31,7 +31,7 @@ GNU LESSER GENERAL PUBLIC LICENSE Version 2.1, February 1999
                 OR
 
 EITHER of the aforementioned licenses AND (at your option)
-any later version of the above said licenses.
+any later version of the above said licenses
 
 1.2 LICENSE LIMITATIONS
 
@@ -54,6 +54,7 @@ license displayed below in section 1.3
 
 If you are unsure of whether or not your product qualifies as an Open Source product,
 please contact the Free Software Foundation, or visit their website at www.fsf.org.
+
 
 1.3 PROPRIETARY USAGE
 
@@ -79,14 +80,13 @@ and sources. The following public sources of information were lawfully used:
 
 - GNU NTIFS.H, Revision 43
 - W32API, Version 2.5
-- Microsoft Windows Driver Kit 6001
-- Microsoft Windows Driver Kit 6000
+- Microsoft Windows Driver Kit
 - Microsoft Driver Development Kit 2003 SP1
 - Microsoft Driver Development Kit 2000
 - Microsoft Driver Development Kit NT 4
 - Microsoft Driver Development Kit WinME
 - Microsoft Installable File Systems Kit 2003 SP1
-- Microsoft Windows Debugger (WinDBG) 6.5.0003.7 and later
+- Microsoft Windows Debugger (WinDBG) 6.5.0003.7
 - Microsoft Public Symbolic Data
 - Microsoft Public Windows Binaries (strings)
 - OSR Technical Articles
@@ -158,7 +158,7 @@ you would like to be credited for it.
 
     * Native Mode Application: 
 
-       #include "ntdef.h"        /* Declare basic native types. */
+       #include "windows.h"      /* Declare Windows Headers for basic types. NEEDED UNTIL NDK 1.5 */
        #include "ntndk.h"        /* Declare the NDK Headers */
 
     * Kernel Mode Driver: 
@@ -179,4 +179,6 @@ you would like to be credited for it.
       Microsoft decided to hack the Native Types and to define them incorrectly, replacing real members by "reserved"
       ones. As such, you 'cannot include winternl.h in any project that uses the NDK. Note however, that the NDK fully
       replaces it and retains compatibility with any project that used it.
-    * You must have the WDK installed if using the WDK, even for non-kernel applications, because ntntls.h is required.
+    * Native programs: Native programs must include "windows.h" until the next release of the NDK (1.5). The upcoming
+      version will automatically detect the lack of missing types and include them. Note however that you will still
+      need to have the PSDK installed.

@@ -24,7 +24,7 @@ Author:
 //
 #include <umtypes.h>
 #include <cfg.h>
-#if defined(_MSC_VER) && !defined(NTOS_MODE_USER)
+#if !defined(NTOS_MODE_USER)
 #include <ntimage.h>
 #endif
 #include <cmtypes.h>
@@ -47,9 +47,8 @@ Author:
 #endif
 
 //
-// Atom and Language IDs
+// Rtl Atom
 //
-typedef USHORT LANGID, *PLANGID;
 typedef USHORT RTL_ATOM, *PRTL_ATOM;
 
 #ifndef NTOS_MODE_USER
@@ -147,6 +146,7 @@ extern ULONG NtBuildNumber;
 // Pushlock Wait Block Flags
 //
 #define EX_PUSH_LOCK_FLAGS_EXCLUSIVE        1
+#define EX_PUSH_LOCK_FLAGS_WAIT_V           1
 #define EX_PUSH_LOCK_FLAGS_WAIT             2
 
 //
@@ -272,7 +272,7 @@ typedef enum _SYSTEM_INFORMATION_CLASS
     SystemWatchDogTimerHandler,
     SystemWatchDogTimerInformation,
     SystemLogicalProcessorInformation,
-    SystemWo64SharedInformationObosolete,
+    SystemWow64SharedInformationObsolete,
     SystemRegisterFirmwareTableInformationHandler,
     SystemFirmwareTableInformation,
     SystemModuleInformationEx,
@@ -376,29 +376,6 @@ typedef BOOLEAN
 );
 
 //
-// Compatibility with Windows XP Drivers using ERESOURCE
-//
-typedef struct _ERESOURCE_XP
-{
-    LIST_ENTRY SystemResourcesList;
-    POWNER_ENTRY OwnerTable;
-    SHORT ActiveCount;
-    USHORT Flag;
-    PKSEMAPHORE SharedWaiters;
-    PKEVENT ExclusiveWaiters;
-    OWNER_ENTRY OwnerThreads[2];
-    ULONG ContentionCount;
-    USHORT NumberOfSharedWaiters;
-    USHORT NumberOfExclusiveWaiters;
-    union
-    {
-        PVOID Address;
-        ULONG_PTR CreatorBackTraceIndex;
-    };
-    KSPIN_LOCK SpinLock;
-} ERESOURCE_XP, *PERESOURCE_XP;
-
-//
 // Executive Work Queue Structures
 //
 typedef struct _EX_QUEUE_WORKER_INFO
@@ -441,7 +418,7 @@ typedef struct _EX_RUNDOWN_REF_CACHE_AWARE
     PVOID PoolToFree;
     ULONG RunRefSize;
     ULONG Number;
-} EX_RUNDOWN_REF_CACHE_AWARE, *PEX_RUNDOWN_REF_CACHE_AWARE;
+} EX_RUNDOWN_REF_CACHE_AWARE;
 
 //
 // Executive Rundown Wait Block
@@ -507,7 +484,7 @@ typedef struct _CALLBACK_OBJECT
     LIST_ENTRY RegisteredCallbacks;
     BOOLEAN AllowMultipleCallbacks;
     UCHAR reserved[3];
-} CALLBACK_OBJECT, *PCALLBACK_OBJECT;
+} CALLBACK_OBJECT;
 
 //
 // Callback Handle
@@ -554,7 +531,7 @@ typedef struct _EPROFILE
     PKPROFILE ProfileObject;
     PVOID LockedBufferAddress;
     PMDL Mdl;
-    ULONG Segment;
+    ULONG_PTR Segment;
     KPROFILE_SOURCE ProfileSource;
     KAFFINITY Affinity;
 } EPROFILE, *PEPROFILE;
@@ -663,7 +640,7 @@ typedef struct _HARDERROR_MSG
     ULONG Response;
     ULONG NumberOfParameters;
     ULONG UnicodeStringParameterMask;
-    ULONG Parameters[MAXIMUM_HARDERROR_PARAMETERS];
+    ULONG_PTR Parameters[MAXIMUM_HARDERROR_PARAMETERS];
 } HARDERROR_MSG, *PHARDERROR_MSG;
 
 //
@@ -840,8 +817,10 @@ typedef struct _SYSTEM_TIMEOFDAY_INFORMATION
     LARGE_INTEGER TimeZoneBias;
     ULONG TimeZoneId;
     ULONG Reserved;
-    LARGE_INTEGER BootTimeBias;
-    LARGE_INTEGER SleepTimeBias;
+#if (NTDDI_VERSION >= NTDDI_WIN2K)
+    ULONGLONG BootTimeBias;
+    ULONGLONG SleepTimeBias;
+#endif
 } SYSTEM_TIMEOFDAY_INFORMATION, *PSYSTEM_TIMEOFDAY_INFORMATION;
 
 // Class 4

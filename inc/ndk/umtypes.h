@@ -53,7 +53,9 @@ Author:
 //
 #ifndef _MANAGED
 #if defined(_M_IX86)
+#ifndef FASTCALL
 #define FASTCALL                        _fastcall
+#endif
 #else
 #define FASTCALL
 #endif
@@ -120,12 +122,13 @@ typedef short CSHORT;
 typedef CSHORT *PCSHORT;
 typedef LARGE_INTEGER PHYSICAL_ADDRESS, *PPHYSICAL_ADDRESS;
 typedef LONG KPRIORITY;
-typedef LONG NTSTATUS, *PNTSTATUS;
 
 //
 // Basic NT Types
 //
 #if !defined(_NTSECAPI_H) && !defined(_SUBAUTH_H) && !defined(_NTSECAPI_)
+
+typedef LONG NTSTATUS, *PNTSTATUS;
 
 typedef struct _UNICODE_STRING
 {
@@ -149,6 +152,23 @@ typedef struct _CSTRING
 } CSTRING, *PCSTRING;
 
 #endif
+
+typedef struct _STRING32 {
+    USHORT   Length;
+    USHORT   MaximumLength;
+    ULONG  Buffer;
+} STRING32, *PSTRING32, 
+  UNICODE_STRING32, *PUNICODE_STRING32, 
+  ANSI_STRING32, *PANSI_STRING32;
+
+typedef struct _STRING64 {
+    USHORT   Length;
+    USHORT   MaximumLength;
+    ULONGLONG  Buffer;
+} STRING64, *PSTRING64,
+  UNICODE_STRING64, *PUNICODE_STRING64, 
+  ANSI_STRING64, *PANSI_STRING64;
+
 
 typedef struct _OBJECT_ATTRIBUTES
 {

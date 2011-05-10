@@ -37,6 +37,29 @@ IoAssignDriveLetters(
     OUT PUCHAR NtSystemPath,
     OUT PSTRING NtSystemPathString
 );
+
+NTSTATUS
+NTAPI
+IoSynchronousInvalidateDeviceRelations(
+    IN PDEVICE_OBJECT DeviceObject,
+    IN DEVICE_RELATION_TYPE Type
+);
+
+NTSTATUS
+NTAPI
+IoCreateDriver(
+    IN PUNICODE_STRING DriverName OPTIONAL,
+    IN PDRIVER_INITIALIZE InitializationFunction
+);
+
+NTSTATUS
+NTAPI
+IoReportHalResourceUsage(
+    IN PUNICODE_STRING HalName,
+    IN PCM_RESOURCE_LIST RawResourceList,
+    IN PCM_RESOURCE_LIST TranslatedResourceList,
+    IN ULONG ResourceListSize
+);
 #endif
 
 //

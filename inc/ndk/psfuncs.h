@@ -25,20 +25,24 @@ Author:
 #include <umtypes.h>
 #include <pstypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef NTOS_MODE_USER
 
 //
 // Win32K Process/Thread Functions
 //
 NTKERNELAPI
-struct _W32THREAD*
+PVOID
 NTAPI
 PsGetCurrentThreadWin32Thread(
     VOID
 );
 
 NTKERNELAPI
-struct _W32PROCESS*
+PVOID
 NTAPI
 PsGetCurrentProcessWin32Process(
     VOID
@@ -75,6 +79,20 @@ PsGetThreadWin32Thread(
 );
 
 NTKERNELAPI
+PTEB
+NTAPI
+PsGetThreadTeb(
+    IN PETHREAD Thread
+);
+
+NTKERNELAPI
+HANDLE
+NTAPI
+PsGetThreadId(
+    IN PETHREAD Thread
+);
+
+NTKERNELAPI
 BOOLEAN
 NTAPI
 PsGetThreadHardErrorsAreDisabled(
@@ -101,7 +119,7 @@ VOID
 NTAPI
 PsReturnProcessNonPagedPoolQuota(
     IN PEPROCESS Process,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 //
@@ -132,6 +150,26 @@ PsIsProtectedProcess(
     IN PEPROCESS Process
 );
 
+NTKERNELAPI
+BOOLEAN
+NTAPI
+PsIsSystemProcess(
+    IN PEPROCESS Process
+);
+
+VOID
+NTAPI
+PsSetProcessPriorityByClass(
+    IN PEPROCESS Process,
+    IN PSPROCESSPRIORITYMODE Type
+);
+
+HANDLE
+NTAPI
+PsGetProcessInheritedFromUniqueProcessId(
+    IN PEPROCESS Process
+);
+
 //
 // Quota Functions
 //
@@ -141,7 +179,7 @@ NTAPI
 PsChargePoolQuota(
     IN PEPROCESS Process,
     IN POOL_TYPE PoolType,
-    IN ULONG Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -149,7 +187,7 @@ NTSTATUS
 NTAPI
 PsChargeProcessNonPagedPoolQuota(
     IN PEPROCESS Process,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -157,7 +195,7 @@ NTSTATUS
 NTAPI
 PsChargeProcessPagedPoolQuota(
     IN PEPROCESS Process,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -166,7 +204,7 @@ NTAPI
 PsChargeProcessPoolQuota(
     IN PEPROCESS Process,
     IN POOL_TYPE PoolType,
-    IN ULONG Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -175,7 +213,7 @@ NTAPI
 PsReturnPoolQuota(
     IN PEPROCESS Process,
     IN POOL_TYPE PoolType,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -183,7 +221,7 @@ VOID
 NTAPI
 PsReturnProcessNonPagedPoolQuota(
     IN PEPROCESS Process,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 NTKERNELAPI
@@ -191,7 +229,7 @@ VOID
 NTAPI
 PsReturnProcessPagedPoolQuota(
     IN PEPROCESS Process,
-    IN ULONG_PTR Amount
+    IN SIZE_T    Amount
 );
 
 #endif
@@ -291,30 +329,7 @@ NtCreateThread(
     IN BOOLEAN CreateSuspended
 );
 
-#ifndef NTOS_MODE_USER
-#if defined(_M_IX86)
-FORCEINLINE
-PTEB
-NtCurrentTeb(VOID)
-{
-#ifndef __GNUC__
-    return (PTEB)(ULONG_PTR)__readfsdword(0x18);
-#else
-    struct _TEB *ret;
-
-    __asm__ __volatile__ (
-        "movl %%fs:0x18, %0\n"
-        : "=r" (ret)
-        : /* no inputs */
-    );
-
-    return ret;
-#endif
-}
-#endif
-#else
-struct _TEB * NtCurrentTeb(void);
-#endif
+#include "inline_ntcurrentteb.h"
 
 NTSYSCALLAPI
 NTSTATUS
@@ -743,5 +758,9 @@ ZwTerminateJobObject(
     HANDLE JobHandle,
     NTSTATUS ExitStatus
 );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

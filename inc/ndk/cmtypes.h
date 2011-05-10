@@ -54,7 +54,7 @@ Author:
 #define CmResourceTypeDma                       4
 #define CmResourceTypeDeviceSpecific            5
 #define CmResourceTypeBusNumber                 6
-#define CmResourceTypeMaximum                   7
+#define CmResourceTypeMemoryLarge               7
 #define CmResourceTypeNonArbitrated             128
 #define CmResourceTypeConfigData                128
 #define CmResourceTypeDevicePrivate             129
@@ -142,11 +142,14 @@ typedef enum _KEY_VALUE_INFORMATION_CLASS
     KeyValuePartialInformationAlign64
 } KEY_VALUE_INFORMATION_CLASS;
 
-typedef enum _KEY_SET_INFORMATION_CLASS
-{
-    KeyWriteTimeInformation,
-    KeyUserFlagsInformation,
-    MaxKeySetInfoClass
+typedef enum _KEY_SET_INFORMATION_CLASS {
+  KeyWriteTimeInformation,
+  KeyWow64FlagsInformation,
+  KeyControlFlagsInformation,
+  KeySetVirtualizationInformation,
+  KeySetDebugInformation,
+  KeySetHandleTagsInformation,
+  MaxKeySetInfoClass
 } KEY_SET_INFORMATION_CLASS;
 
 #endif
@@ -433,8 +436,29 @@ typedef struct _CM_PARTIAL_RESOURCE_DESCRIPTOR
         {
             ULONG Level;
             ULONG Vector;
-            ULONG Affinity;
+            KAFFINITY Affinity;
         } Interrupt;
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+        struct
+        {
+            union
+            {
+                struct
+                {
+                    USHORT Reserved;
+                    USHORT MessageCount;
+                    ULONG Vector;
+                    KAFFINITY Affinity;
+                } Raw;
+                struct
+                {
+                    ULONG Level;
+                    ULONG Vector;
+                    KAFFINITY Affinity;
+                } Translated;
+            };
+        } MessageInterrupt;
+#endif
         struct
         {
             PHYSICAL_ADDRESS Start;
@@ -448,7 +472,7 @@ typedef struct _CM_PARTIAL_RESOURCE_DESCRIPTOR
         } Dma;
         struct
         {
-          ULONG Data[3];
+            ULONG Data[3];
         } DevicePrivate;
         struct
         {
@@ -462,6 +486,23 @@ typedef struct _CM_PARTIAL_RESOURCE_DESCRIPTOR
             ULONG Reserved1;
             ULONG Reserved2;
         } DeviceSpecificData;
+#if (NTDDI_VERSION >= NTDDI_LONGHORN)
+        struct
+        {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length40;
+        } Memory40;
+        struct
+        {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length48;
+        } Memory48;
+        struct
+        {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length64;
+        } Memory64;
+#endif
     } u;
 } CM_PARTIAL_RESOURCE_DESCRIPTOR, *PCM_PARTIAL_RESOURCE_DESCRIPTOR;
 

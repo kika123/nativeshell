@@ -85,19 +85,6 @@ typedef enum _OBJECT_INFORMATION_CLASS
 
 #else
 
-#if (NTDDI_VERSION < NTDDI_VISTASP1)
-typedef enum _OBJECT_INFORMATION_CLASS
-{
-    ObjectBasicInformation,
-    ObjectNameInformation,
-    ObjectTypeInformation,
-    ObjectTypesInformation,
-    ObjectHandleFlagInformation,
-    ObjectSessionInformation,
-    MaxObjectInfoClass
-} OBJECT_INFORMATION_CLASS;
-#endif
-
 //
 // Object Flags
 //
@@ -308,6 +295,12 @@ typedef struct _OBJECT_TYPE_INFORMATION
     ULONG DefaultPagedPoolCharge;
     ULONG DefaultNonPagedPoolCharge;
 } OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
+typedef struct _OBJECT_ALL_TYPES_INFORMATION
+{
+    ULONG NumberOfTypes;
+    //OBJECT_TYPE_INFORMATION TypeInformation[1];
+} OBJECT_ALL_TYPES_INFORMATION, *POBJECT_ALL_TYPES_INFORMATION;
 
 #ifdef NTOS_MODE_USER
 

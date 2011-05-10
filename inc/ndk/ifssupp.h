@@ -21,13 +21,35 @@ Author:
 
 #define TOKEN_SOURCE_LENGTH               8
 
+#ifndef _NTIFS_
 typedef enum _TOKEN_TYPE
 {
     TokenPrimary = 1,
     TokenImpersonation
 } TOKEN_TYPE, *PTOKEN_TYPE;
 
-typedef PVOID PRTL_HEAP_PARAMETERS;
+typedef NTSTATUS
+(NTAPI * PRTL_HEAP_COMMIT_ROUTINE)(
+    IN PVOID Base,
+    IN OUT PVOID *CommitAddress,
+    IN OUT PSIZE_T CommitSize
+);
+
+typedef struct _RTL_HEAP_PARAMETERS
+{
+    ULONG Length;
+    SIZE_T SegmentReserve;
+    SIZE_T SegmentCommit;
+    SIZE_T DeCommitFreeBlockThreshold;
+    SIZE_T DeCommitTotalFreeThreshold;
+    SIZE_T MaximumAllocationSize;
+    SIZE_T VirtualMemoryThreshold;
+    SIZE_T InitialCommit;
+    SIZE_T InitialReserve;
+    PRTL_HEAP_COMMIT_ROUTINE CommitRoutine;
+    SIZE_T Reserved[2];
+} RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
+
 typedef PVOID PFS_FILTER_CALLBACKS;
 typedef USHORT SECURITY_DESCRIPTOR_CONTROL, *PSECURITY_DESCRIPTOR_CONTROL;
 
@@ -243,6 +265,24 @@ typedef struct _TOKEN_DEFAULT_DACL
 {
     PACL DefaultDacl;
 } TOKEN_DEFAULT_DACL, *PTOKEN_DEFAULT_DACL;
+
+//
+// Heap flags
+//
+#define HEAP_NO_SERIALIZE               0x00000001
+#define HEAP_GROWABLE                   0x00000002
+#define HEAP_GENERATE_EXCEPTIONS        0x00000004
+#define HEAP_ZERO_MEMORY                0x00000008
+#define HEAP_REALLOC_IN_PLACE_ONLY      0x00000010
+#define HEAP_TAIL_CHECKING_ENABLED      0x00000020
+#define HEAP_FREE_CHECKING_ENABLED      0x00000040
+#define HEAP_DISABLE_COALESCE_ON_FREE   0x00000080
+
+#define HEAP_CREATE_ALIGN_16            0x00010000
+#define HEAP_CREATE_ENABLE_TRACING      0x00020000
+#define HEAP_CREATE_ENABLE_EXECUTE      0x00040000
+
+#endif
 
 #endif // !NTOS_MODE_USER
 #endif // _NTIFS_
