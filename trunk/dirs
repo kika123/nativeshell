@@ -1,1 +1,1 @@
-DIRS=mspack native
+DIRS=crt mspack native
