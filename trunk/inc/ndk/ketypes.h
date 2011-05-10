@@ -43,6 +43,16 @@ Author:
 // Processor Architectures
 //
 #define PROCESSOR_ARCHITECTURE_INTEL    0
+#define PROCESSOR_ARCHITECTURE_MIPS     1
+#define PROCESSOR_ARCHITECTURE_ALPHA    2
+#define PROCESSOR_ARCHITECTURE_PPC      3
+#define PROCESSOR_ARCHITECTURE_SHX      4
+#define PROCESSOR_ARCHITECTURE_ARM      5
+#define PROCESSOR_ARCHITECTURE_IA64     6
+#define PROCESSOR_ARCHITECTURE_ALPHA64  7
+#define PROCESSOR_ARCHITECTURE_MSIL     8
+#define PROCESSOR_ARCHITECTURE_AMD64    9
+#define PROCESSOR_ARCHITECTURE_UNKNOWN  0xFFFF
 
 //
 // Object Type Mask for Kernel Dispatcher Objects
@@ -54,11 +64,6 @@ Author:
 // Dispatcher Priority increments
 //
 #define THREAD_ALERT_INCREMENT          2
-
-//
-// User Shared Data in Kernel-Mode
-//
-#define KI_USER_SHARED_DATA             0xffdf0000
 
 //
 // Physical memory offset of KUSER_SHARED_DATA
@@ -103,27 +108,17 @@ Author:
 #define KI_EXCEPTION_INTERNAL           0x10000000
 #define KI_EXCEPTION_ACCESS_VIOLATION   (KI_EXCEPTION_INTERNAL | 0x04)
 
-//
-// KPCR Access for non-IA64 builds
-//
-#define K0IPCR                          ((ULONG_PTR)(KIP0PCRADDRESS))
-#define PCR                             ((volatile KPCR * const)K0IPCR)
-#if !defined(CONFIG_SMP) && !defined(NT_BUILD)
-#define KeGetPcr()                      PCR
-#else
-#define KeGetPcr()                      ((volatile KPCR * const)__readfsdword(0x1C))
-#endif
-
+#ifndef NTOS_MODE_USER
 //
 // Number of dispatch codes supported by KINTERRUPT
 //
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
-#define KINTERRUPT_DISPATCH_CODES       135
+#define DISPATCH_LENGTH                 135
 #else
-#define KINTERRUPT_DISPATCH_CODES       106
+#define DISPATCH_LENGTH                 106
 #endif
 
-#ifdef NTOS_MODE_USER
+#else
 
 //
 // KPROCESSOR_MODE Type
@@ -553,23 +548,12 @@ typedef enum _KAPC_ENVIRONMENT
 } KAPC_ENVIRONMENT;
 
 //
-// CPU Cache Types
-//
-typedef enum _PROCESSOR_CACHE_TYPE
-{
-    CacheUnified,
-    CacheInstruction,
-    CacheData,
-    CacheTrace,
-} PROCESSOR_CACHE_TYPE;
-
-//
 // PRCB DPC Data
 //
 typedef struct _KDPC_DATA
 {
     LIST_ENTRY DpcListHead;
-    ULONG DpcLock;
+    ULONG_PTR DpcLock;
     volatile ULONG DpcQueueDepth;
     ULONG DpcCount;
 } KDPC_DATA, *PKDPC_DATA;
@@ -582,18 +566,6 @@ typedef struct _PP_LOOKASIDE_LIST
     struct _GENERAL_LOOKASIDE *P;
     struct _GENERAL_LOOKASIDE *L;
 } PP_LOOKASIDE_LIST, *PPP_LOOKASIDE_LIST;
-
-//
-// CPU Cache Descriptor
-//
-typedef struct _CACHE_DESCRIPTOR
-{
-    UCHAR Level;
-    UCHAR Associativity;
-    USHORT LineSize;
-    ULONG Size;
-    PROCESSOR_CACHE_TYPE Type;
-} CACHE_DESCRIPTOR, *PCACHE_DESCRIPTOR;
 
 //
 // Architectural Types
@@ -632,7 +604,7 @@ typedef struct _KPROFILE
     PVOID RangeLimit;
     ULONG BucketShift;
     PVOID Buffer;
-    ULONG Segment;
+    ULONG_PTR Segment;
     KAFFINITY Affinity;
     KPROFILE_SOURCE Source;
     BOOLEAN Started;
@@ -672,8 +644,8 @@ typedef struct _KINTERRUPT
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     ULONGLONG Rsvd1;
 #endif
-    ULONG DispatchCode[KINTERRUPT_DISPATCH_CODES];
-} KINTERRUPT, *PKINTERRUPT;
+    ULONG DispatchCode[DISPATCH_LENGTH];
+} KINTERRUPT;
 
 //
 // Kernel Event Pair Object
@@ -950,7 +922,7 @@ typedef struct _KTHREAD
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     PVOID MdlForLockedteb;
 #endif
-} KTHREAD, *PKTHREAD;
+} KTHREAD;
 
 #define ASSERT_THREAD(object) \
     ASSERT((((object)->DispatcherHeader.Type & KOBJECT_TYPE_MASK) == ThreadObject))
@@ -966,7 +938,7 @@ typedef struct _KPROCESS
     ULONG DirectoryTableBase;
     ULONG Unused0;
 #else
-    LARGE_INTEGER DirectoryTableBase;
+    ULONG DirectoryTableBase[2];
 #endif
 #if defined(_M_IX86)
     KGDTENTRY LdtDescriptor;
@@ -1012,7 +984,7 @@ typedef struct _KPROCESS
 #if (NTDDI_VERSION >= NTDDI_LONGHORN)
     ULONGLONG CycleTime;
 #endif
-} KPROCESS, *PKPROCESS;
+} KPROCESS;
 
 #define ASSERT_PROCESS(object) \
     ASSERT((((object)->Header.Type & KOBJECT_TYPE_MASK) == ProcessObject))
@@ -1055,6 +1027,8 @@ extern ULONG NTSYSAPI KeMaximumIncrement;
 extern ULONG NTSYSAPI KeMinimumIncrement;
 extern ULONG NTSYSAPI KeDcacheFlushCount;
 extern ULONG NTSYSAPI KeIcacheFlushCount;
+extern ULONG_PTR NTSYSAPI KiBugCheckData[];
+extern BOOLEAN NTSYSAPI KiEnableTimerWatchdog;
 
 //
 // Exported System Service Descriptor Tables

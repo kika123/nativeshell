@@ -133,6 +133,7 @@ KeAcquireInStackQueuedSpinLockRaiseToSynch(
     IN PKLOCK_QUEUE_HANDLE LockHandle
 );
 
+
 //
 // Interrupt Functions
 //
@@ -177,7 +178,6 @@ KiCoprocessorError(
 );
 
 VOID
-NTAPI
 KiUnexpectedInterrupt(
     VOID
 );
@@ -198,7 +198,7 @@ BOOLEAN
 NTAPI
 KiIpiServiceRoutine(
     IN PKTRAP_FRAME TrapFrame,
-    IN PVOID ExceptionFrame
+    IN PKEXCEPTION_FRAME ExceptionFrame
 );
 
 //
@@ -233,21 +233,6 @@ NTAPI
 KeFlushEntireTb(
     IN BOOLEAN Invalid,
     IN BOOLEAN AllProcessors
-);
-
-VOID
-NTAPI
-KeUpdateSystemTime(
-    PKTRAP_FRAME TrapFrame,
-    KIRQL Irql,
-    ULONG Increment
-);
-
-VOID
-NTAPI
-KeUpdateRunTime(
-    PKTRAP_FRAME TrapFrame,
-    KIRQL Irql
 );
 
 VOID
@@ -441,18 +426,18 @@ NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtSetIntervalProfile(
-    ULONG Interval,
-    KPROFILE_SOURCE ClockSource
+    IN ULONG Interval,
+    IN KPROFILE_SOURCE ClockSource
 );
 
 NTSYSCALLAPI
 NTSTATUS
 NTAPI
 NtSetLdtEntries(
-    ULONG Selector1,
-    LDT_ENTRY LdtEntry1,
-    ULONG Selector2,
-    LDT_ENTRY LdtEntry2
+    IN ULONG Selector1,
+    IN LDT_ENTRY LdtEntry1,
+    IN ULONG Selector2,
+    IN LDT_ENTRY LdtEntry2
 );
 
 NTSYSCALLAPI
@@ -647,18 +632,18 @@ NTSYSAPI
 NTSTATUS
 NTAPI
 ZwSetIntervalProfile(
-    ULONG Interval,
-    KPROFILE_SOURCE ClockSource
+    IN ULONG Interval,
+    IN KPROFILE_SOURCE ClockSource
 );
 
 NTSYSAPI
 NTSTATUS
 NTAPI
 ZwSetLdtEntries(
-    ULONG Selector1,
-    LDT_ENTRY LdtEntry1,
-    ULONG Selector2,
-    LDT_ENTRY LdtEntry2
+    IN ULONG Selector1,
+    IN LDT_ENTRY LdtEntry1,
+    IN ULONG Selector2,
+    IN LDT_ENTRY LdtEntry2
 );
 
 NTSYSAPI

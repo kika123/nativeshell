@@ -34,6 +34,22 @@ Author:
 #define DEBUG_OBJECT_ALL_ACCESS             (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | 0x0F)
 
 //
+// Debug Event Flags
+//
+#define DEBUG_EVENT_READ                  (0x01)
+#define DEBUG_EVENT_NOWAIT                (0x02)
+#define DEBUG_EVENT_INACTIVE              (0x04)
+#define DEBUG_EVENT_RELEASE               (0x08)
+#define DEBUG_EVENT_PROTECT_FAILED        (0x10)
+#define DEBUG_EVENT_SUSPEND               (0x20)
+
+//
+// NtCreateDebugObject Flags
+//
+#define DBGK_KILL_PROCESS_ON_EXIT         (0x1)
+#define DBGK_ALL_FLAGS                    (DBGK_KILL_PROCESS_ON_EXIT)
+
+//
 // Debug Object Information Classes for NtQueryDebugObject
 //
 typedef enum _DEBUGOBJECTINFOCLASS
@@ -191,7 +207,7 @@ typedef struct _DBGKM_MSG
 {
     PORT_MESSAGE h;
     DBGKM_APINUMBER ApiNumber;
-    ULONG ReturnedStatus;
+    NTSTATUS ReturnedStatus;
     union
     {
         DBGKM_EXCEPTION Exception;

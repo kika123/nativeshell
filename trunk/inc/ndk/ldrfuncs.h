@@ -59,6 +59,7 @@ LdrFindResourceDirectory_U(
 );
 
 BOOLEAN
+NTAPI
 LdrUnloadAlternateResourceModule(
     IN PVOID BaseAddress
 );
@@ -86,6 +87,7 @@ LdrRelocateImage(
 );
 
 NTSTATUS
+NTAPI
 LdrLockLoaderLock(
     IN ULONG Flags,
     OUT PULONG Disposition OPTIONAL,
@@ -105,6 +107,23 @@ LdrVerifyMappedImageMatchesChecksum(
     IN PVOID BaseAddress,
     IN ULONG NumberOfBytes,
     IN ULONG FileLength
+);
+
+PIMAGE_BASE_RELOCATION
+NTAPI
+LdrProcessRelocationBlockLongLong(
+    IN ULONG_PTR Address,
+    IN ULONG Count,
+    IN PUSHORT TypeOffset,
+    IN LONGLONG Delta
+);
+
+NTSTATUS
+NTAPI
+LdrEnumerateLoadedModules(
+    IN BOOLEAN ReservedFlag,
+    IN PLDR_ENUM_CALLBACK EnumProc,
+    IN PVOID Context
 );
 
 #endif

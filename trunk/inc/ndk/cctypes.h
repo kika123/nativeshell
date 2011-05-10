@@ -97,7 +97,7 @@ typedef struct _SHARED_CACHE_MAP
     LARGE_INTEGER ValidDataLength;
     LARGE_INTEGER ValidDataGoal;
     PVACB InitialVacbs[4];
-    PVACB Vacbs;
+    PVACB *Vacbs;
     PFILE_OBJECT FileObject;
     PVACB ActiveVacb;
     PVOID NeedToZero;
@@ -109,7 +109,7 @@ typedef struct _SHARED_CACHE_MAP
     LIST_ENTRY SharedCacheMapLinks;
     ULONG Flags;
     ULONG Status;
-    PMCB Mbcb;
+    PMBCB Mbcb;
     PVOID Section;
     PKEVENT CreateEvent;
     PKEVENT WaitOnActiveCount;
@@ -117,7 +117,7 @@ typedef struct _SHARED_CACHE_MAP
     LONGLONG BeyondLastFlush;
     PCACHE_MANAGER_CALLBACKS Callbacks;
     PVOID LazyWriteContext;
-    PLIST_ENTRY PrivateList;
+    LIST_ENTRY PrivateList;
     PVOID LogHandle;
     PVOID FlushToLsnRoutine;
     ULONG DirtyPageThreshold;
@@ -127,9 +127,9 @@ typedef struct _SHARED_CACHE_MAP
     ULONG BcbSpinLock;
     PVOID Reserved;
     KEVENT Event;
-    PEX_PUSH_LOCK VacbPushLock;
-    PPRIVATE_CACHE_MAP PrivateCacheMap;
-} SHARED_CACHE_MAP;
+    EX_PUSH_LOCK VacbPushLock;
+    PRIVATE_CACHE_MAP PrivateCacheMap;
+} SHARED_CACHE_MAP, *PSHARED_CACHE_MAP;
 
 #endif /* _NTIFS_INCLUDED_  */
 #endif /* NTOS_MODE_USER    */

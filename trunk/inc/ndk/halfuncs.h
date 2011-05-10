@@ -133,15 +133,21 @@ BOOLEAN
 NTAPI
 HalBeginSystemInterrupt(
     KIRQL Irql,
-    ULONG Vector,
+    UCHAR Vector,
     PKIRQL OldIrql
 );
 
+VOID
+FASTCALL
+HalClearSoftwareInterrupt(
+    IN KIRQL Request
+);
+
 NTHALAPI
-BOOLEAN
+VOID
 NTAPI
 HalDisableSystemInterrupt(
-    ULONG Vector,
+    UCHAR Vector,
     KIRQL Irql
 );
 
@@ -149,7 +155,7 @@ NTHALAPI
 BOOLEAN
 NTAPI
 HalEnableSystemInterrupt(
-    ULONG Vector,
+    UCHAR Vector,
     KIRQL Irql,
     KINTERRUPT_MODE InterruptMode
 );
@@ -159,8 +165,15 @@ VOID
 NTAPI
 HalEndSystemInterrupt(
     KIRQL Irql,
-    ULONG Vector
+    IN PKTRAP_FRAME TrapFrame
 );
+
+#ifdef _ARM_ // FIXME: ndk/arm? armddk.h?
+ULONG
+HalGetInterruptSource(
+    VOID
+);
+#endif
 
 NTHALAPI
 VOID
@@ -190,6 +203,25 @@ HalHandleNMI(
     PVOID NmiInfo
 );
 
+NTHALAPI
+UCHAR
+FASTCALL
+HalSystemVectorDispatchEntry(
+    IN ULONG Vector,
+    OUT PKINTERRUPT_ROUTINE **FlatDispatch,
+    OUT PKINTERRUPT_ROUTINE *NoConnection
+);
+
+//
+// Bus Functions
+//
+NTHALAPI
+NTSTATUS
+NTAPI
+HalAdjustResourceList(
+    IN OUT PIO_RESOURCE_REQUIREMENTS_LIST *pResourceList
+);
+    
 //
 // Environment Functions
 //
@@ -213,6 +245,29 @@ HalGetEnvironmentVariable(
 #endif
 
 //
+// Profiling Functions
+//
+VOID
+NTAPI
+HalStartProfileInterrupt(
+    IN KPROFILE_SOURCE ProfileSource
+);
+
+NTHALAPI
+VOID
+NTAPI
+HalStopProfileInterrupt(
+    IN KPROFILE_SOURCE ProfileSource
+);
+
+NTHALAPI
+ULONG_PTR
+NTAPI
+HalSetProfileInterval(
+    IN ULONG_PTR Interval
+);
+
+//
 // Time Functions
 //
 NTHALAPI
@@ -227,6 +282,13 @@ BOOLEAN
 NTAPI
 HalSetRealTimeClock(
     IN PTIME_FIELDS RtcTime
+);
+
+NTHALAPI
+ULONG
+NTAPI
+HalSetTimeIncrement(
+    IN ULONG Increment
 );
 
 #endif
