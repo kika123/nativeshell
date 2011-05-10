@@ -5,7 +5,10 @@ TARGETPATH=$(ROOTDIR)\build\
 
 !INCLUDE $(ROOTDIR)\sources.inc
 
-TARGETLIBS=$(TARGETLIBS) $(ROOTDIR)\lib\*\mspack.lib $(ROOTDIR)\lib\laotouwim.lib
+TARGETLIBS=$(TARGETLIBS)\
+	$(ROOTDIR)\lib\*\crt.lib\
+	$(ROOTDIR)\lib\*\mspack.lib\
+	$(ROOTDIR)\lib\laotouwim.lib
 
 
 PRECOMPILED_INCLUDE=precomp.h
