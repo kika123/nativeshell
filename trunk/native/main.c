@@ -327,25 +327,14 @@ RtlClipProcessMessage(PCHAR Command)
     else if (!_stricmp(xargv[1], "expand"))
     {
         // Expand .cab file
-        void CabinetExpand(WCHAR * cabname, WCHAR * target);
+        void CabinetExpand(char * cabname, char * target);
         if(!_stricmp(xargv[2], "-d") && xargc > 2)
         {
-            GetFullPath(xargv[3], buf1, FALSE);
-            CabinetExpand(buf1, NULL);
+            CabinetExpand(xargv[3], NULL);
         }
         else if(xargc > 1)
         {
-            GetFullPath(xargv[2], buf1, FALSE);
-            if(xargc == 2)
-            {
-                GetFullPath("", buf2, FALSE);
-            }
-            else
-            {
-                GetFullPath(xargv[3], buf2, FALSE);
-                wcscat(buf2, L"\\");
-            }
-            CabinetExpand(buf1, buf2);
+            CabinetExpand(xargv[2], xargv[3]);
         }
         else
         {
@@ -393,10 +382,6 @@ RtlClipProcessMessage(PCHAR Command)
             RtlCliDisplayString("Not enough arguments.\n");
         }
     }
-    //else if (!_stricmp(xargv[1], "cabtest"))
-    //{
-    //CabinetTest();
-    //}
     else
     {
         //
@@ -650,18 +635,22 @@ void LoadBatch(PCHAR Command, WCHAR *fname)
     RtlFreeHeap(RtlGetProcessHeap(), 0, buf);
     NtClose(hFile);
 }
-void CabinetExpand(WCHAR *cabname, WCHAR *target)
+void CabinetExpand(char *cabname, char *target)
 {
 
     struct mscab_decompressor *cabd;
     struct mscabd_cabinet *cab;
     struct mscabd_file *file;
-    char cName[MAX_PATH];
-    char tPath[MAX_PATH];
-    char fName[MAX_PATH];
-    WCHAR buf[MAX_PATH];
+    char buf[MAX_PATH];
+    char *p;
     int count_ok = 0, count_err = 0, count = 0;
     int err;
+#if 1
+    __asm
+    {
+        int 3;
+    }
+#endif
     MSPACK_SYS_SELFTEST(err);
     if (err)
     {
@@ -673,8 +662,7 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
         RtlCliDisplayString("can't make decompressor\n");
         return ;
     }
-    wcstombs(cName, cabname, MAX_PATH);
-    if(!(cab = cabd->open(cabd, cName)))
+    if(!(cab = cabd->open(cabd, cabname)))
     {
         RtlCliDisplayString("can't open file. error : %d.\n", cabd->last_error(cabd));
     }
@@ -690,13 +678,15 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
         }
         else
         {
-            wcstombs(tPath, target, MAX_PATH);
+            strcpy(buf, target);
+            p = &buf[strlen(buf) - 1];
+            if(*p != '\\') *(++p) = '\\';
+            p++;
             for (file = cab->files; file; file = file->next, count++)
             {
-                strcpy(fName, tPath);
-                strcat(fName, file->filename);
+                strcpy(p, file->filename);
                 RtlCliDisplayString(">%s", file->filename);
-                if (cabd->extract(cabd, file, fName) == MSPACK_ERR_OK)
+                if (cabd->extract(cabd, file, buf) == MSPACK_ERR_OK)
                 {
                     count_ok++;
                     RtlCliDisplayString("...ok\n");
@@ -705,7 +695,7 @@ void CabinetExpand(WCHAR *cabname, WCHAR *target)
                 {
                     count_err++;
                     RtlCliDisplayString("...error : %d\n", cabd->last_error(cabd));
-                    DbgPrint("expand error: %d  %s \n", cabd->last_error(cabd), fName);
+                    DbgPrint("expand error: %d  %s \n", cabd->last_error(cabd), buf);
                 }
             }
             RtlCliDisplayString("total %d files, %d files ok, %d files error.\n", count, count_ok, count_err);
