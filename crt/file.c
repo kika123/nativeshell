@@ -68,7 +68,8 @@ int *__p___mb_cur_max(void);
 
 #undef vprintf
 #undef vwprintf
-
+#define fflush _fflush_
+#define _read _read_
 /* _access() bit flags FIXME: incomplete */
 /* defined in crt/io.h */
 
@@ -594,19 +595,19 @@ int CDECL _flushall(void)
   return num_flushed;
 }
 
-///*********************************************************************
-// *		fflush (MSVCRT.@)
-// */
-//int CDECL fflush(FILE* file)
-//{
-//  if(!file) {
-//	_flushall();
-//  } else if(file->_flag & _IOWRT) {
-//  	int res=flush_buffer(file);
-//  	return res;
-//  }
-//  return 0;
-//}
+/*********************************************************************
+ *		fflush (MSVCRT.@)
+ */
+int CDECL fflush(FILE* file)
+{
+  if(!file) {
+	_flushall();
+  } else if(file->_flag & _IOWRT) {
+  	int res=flush_buffer(file);
+  	return res;
+  }
+  return 0;
+}
 
 /*********************************************************************
  *		_close (MSVCRT.@)
@@ -1659,15 +1660,15 @@ static int read_i(int fd, void *buf, unsigned int count)
   return num_read;
 }
 
-///*********************************************************************
-// *		_read (MSVCRT.@)
-// */
-//int CDECL _read(int fd, void *buf, unsigned int count)
-//{
-//  int num_read;
-//  num_read = read_i(fd, buf, count);
-//  return num_read;
-//}
+/*********************************************************************
+ *		_read (MSVCRT.@)
+ */
+int CDECL _read(int fd, void *buf, unsigned int count)
+{
+  int num_read;
+  num_read = read_i(fd, buf, count);
+  return num_read;
+}
 
 /*********************************************************************
  *		_setmode (MSVCRT.@)
